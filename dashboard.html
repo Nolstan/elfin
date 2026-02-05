@@ -143,7 +143,7 @@
         const user = JSON.parse(localStorage.getItem('user') || 'null');
 
         if (!token || !user) {
-            window.location.href = './';
+            window.location.href = 'https://elfin-login-page.onrender.com/';
         }
 
         // Display user information
@@ -174,7 +174,7 @@
         // Load profile
         async function loadProfile() {
             try {
-                const response = await authenticatedFetch('api/auth/profile');
+                const response = await authenticatedFetch('https://elfin-login-page.onrender.com/api/auth/profile');
                 const data = await response.json();
 
                 if (response.ok) {
@@ -192,7 +192,7 @@
         // Load user content
         async function loadUserContent() {
             try {
-                const response = await authenticatedFetch('api/auth/user-dashboard');
+                const response = await authenticatedFetch('https://elfin-login-page.onrender.com/api/auth/user-dashboard');
                 const data = await response.json();
 
                 if (response.ok) {
@@ -210,7 +210,7 @@
         // Load admin content
         async function loadAdminContent() {
             try {
-                const response = await authenticatedFetch('api/auth/admin-dashboard');
+                const response = await authenticatedFetch('https://elfin-login-page.onrender.com/api/auth/admin-dashboard');
                 const data = await response.json();
 
                 if (response.ok) {
@@ -228,7 +228,7 @@
         // Load shared content
         async function loadSharedContent() {
             try {
-                const response = await authenticatedFetch('api/auth/shared-content');
+                const response = await authenticatedFetch('https://elfin-login-page.onrender.com/api/auth/shared-content');
                 const data = await response.json();
 
                 if (response.ok) {
@@ -247,7 +247,7 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = './';
+            window.location.href = 'https://elfin-login-page.onrender.com/';
         }
 
         // Show message function
