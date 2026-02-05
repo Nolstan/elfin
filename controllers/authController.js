@@ -1,5 +1,20 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+
+// Helper function to generate JWT token
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: '24h' }
+  );
+};
 
 const authController = {
   // Register a new user
@@ -39,9 +54,13 @@ const authController = {
 
       await newUser.save();
 
+      // Generate JWT token
+      const token = generateToken(newUser);
+
       // Return success response (don't send password back)
       res.status(201).json({
         message: 'User registered successfully',
+        token: token,
         user: {
           id: newUser._id,
           username: newUser.username,
@@ -76,9 +95,13 @@ const authController = {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
+      // Generate JWT token
+      const token = generateToken(user);
+
       // Return success response
       res.status(200).json({
         message: 'Login successful',
+        token: token,
         user: {
           id: user._id,
           username: user.username,

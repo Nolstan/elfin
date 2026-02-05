@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .user-info h2 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="user-info">
+            <h2>Welcome!</h2>
+            <div id="userDetails">
+                <!-- User details will be loaded here -->
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <h3>Profile</h3>
+                <p>View and edit your profile information.</p>
+                <button class="btn" onclick="loadProfile()">View Profile</button>
+            </div>
+
+            <div class="card" id="userDashboard" style="display: none;">
+                <h3>User Dashboard</h3>
+                <p>Access user-specific features.</p>
+                <button class="btn" onclick="loadUserContent()">User Content</button>
+            </div>
+
+            <div class="card" id="adminDashboard" style="display: none;">
+                <h3>Admin Dashboard</h3>
+                <p>Access administrative features.</p>
+                <button class="btn" onclick="loadAdminContent()">Admin Content</button>
+            </div>
+
+            <div class="card">
+                <h3>Shared Content</h3>
+                <p>Content available to all authenticated users.</p>
+                <button class="btn" onclick="loadSharedContent()">View Content</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        if (!token || !user) {
+            window.location.href = './';
+        }
+
+        // Display user information
+        document.getElementById('userDetails').innerHTML = `
+            <p><strong>Username:</strong> ${user.username}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Role:</strong> ${user.role}</p>
+        `;
+
+        // Show role-specific content
+        if (user.role === 'admin') {
+            document.getElementById('adminDashboard').style.display = 'block';
+        } else if (user.role === 'user') {
+            document.getElementById('userDashboard').style.display = 'block';
+        }
+
+        // Helper function to make authenticated requests
+        async function authenticatedFetch(url, options = {}) {
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            return fetch(url, { ...options, headers });
+        }
+
+        // Load profile
+        async function loadProfile() {
+            try {
+                const response = await authenticatedFetch('api/auth/profile');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Profile loaded successfully!', 'success');
+                    console.log('Profile:', data);
+                } else {
+                    showMessage(data.message || 'Failed to load profile', 'error');
+                }
+            } catch (error) {
+                console.error('Profile error:', error);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Load user content
+        async function loadUserContent() {
+            try {
+                const response = await authenticatedFetch('api/auth/user-dashboard');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('User dashboard loaded!', 'success');
+                    console.log('User content:', data);
+                } else {
+                    showMessage(data.message || 'Access denied', 'error');
+                }
+            } catch (error) {
+                console.error('User content error:', error);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Load admin content
+        async function loadAdminContent() {
+            try {
+                const response = await authenticatedFetch('api/auth/admin-dashboard');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Admin dashboard loaded!', 'success');
+                    console.log('Admin content:', data);
+                } else {
+                    showMessage(data.message || 'Access denied', 'error');
+                }
+            } catch (error) {
+                console.error('Admin content error:', error);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Load shared content
+        async function loadSharedContent() {
+            try {
+                const response = await authenticatedFetch('api/auth/shared-content');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Shared content loaded!', 'success');
+                    console.log('Shared content:', data);
+                } else {
+                    showMessage(data.message || 'Failed to load content', 'error');
+                }
+            } catch (error) {
+                console.error('Shared content error:', error);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = './';
+        }
+
+        // Show message function
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
